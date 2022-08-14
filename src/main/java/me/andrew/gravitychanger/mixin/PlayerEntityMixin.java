@@ -13,6 +13,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
+import net.minecraft.particle.ParticleEffect;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.math.*;
 import net.minecraft.world.World;
@@ -25,7 +26,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import org.spongepowered.asm.mixin.injection.invoke.arg.Args;
 
 @Mixin(PlayerEntity.class)
-public abstract class PlayerEntityMixin extends LivingEntity implements EntityAccessor, RotatableEntityAccessor {
+public abstract class PlayerEntityMixin extends LivingEntityMixin implements EntityAccessor, RotatableEntityAccessor {
     @Shadow @Final private PlayerAbilities abilities;
 
     @Shadow public abstract EntityDimensions getDimensions(EntityPose pose);
@@ -37,10 +38,6 @@ public abstract class PlayerEntityMixin extends LivingEntity implements EntityAc
     private static final TrackedData<Direction> gravitychanger$GRAVITY_DIRECTION = DataTracker.registerData(PlayerEntity.class, TrackedDataHandlerRegistry.FACING);
 
     private Direction gravitychanger$prevGravityDirection = Direction.DOWN;
-
-    protected PlayerEntityMixin(EntityType<? extends LivingEntity> entityType, World world) {
-        super(entityType, world);
-    }
 
     @Override
     public Direction gravitychanger$getAppliedGravityDirection() {
@@ -224,7 +221,7 @@ public abstract class PlayerEntityMixin extends LivingEntity implements EntityAc
             double e = playerMovement.z;
             double var7 = 0.05D;
 
-            while(d != 0.0D && this.world.isSpaceEmpty(this, this.getBoundingBox().offset(RotationUtil.vecPlayerToWorld(d, (double)(-this.stepHeight), 0.0D, gravityDirection)))) {
+            while(d != 0.0D && this.world.isSpaceEmpty((Entity) (Object) this, this.getBoundingBox().offset(RotationUtil.vecPlayerToWorld(d, (double)(-this.stepHeight), 0.0D, gravityDirection)))) {
                 if (d < 0.05D && d >= -0.05D) {
                     d = 0.0D;
                 } else if (d > 0.0D) {
@@ -234,7 +231,7 @@ public abstract class PlayerEntityMixin extends LivingEntity implements EntityAc
                 }
             }
 
-            while(e != 0.0D && this.world.isSpaceEmpty(this, this.getBoundingBox().offset(RotationUtil.vecPlayerToWorld(0.0D, (double)(-this.stepHeight), e, gravityDirection)))) {
+            while(e != 0.0D && this.world.isSpaceEmpty((Entity) (Object) this, this.getBoundingBox().offset(RotationUtil.vecPlayerToWorld(0.0D, (double)(-this.stepHeight), e, gravityDirection)))) {
                 if (e < 0.05D && e >= -0.05D) {
                     e = 0.0D;
                 } else if (e > 0.0D) {
@@ -244,7 +241,7 @@ public abstract class PlayerEntityMixin extends LivingEntity implements EntityAc
                 }
             }
 
-            while(d != 0.0D && e != 0.0D && this.world.isSpaceEmpty(this, this.getBoundingBox().offset(RotationUtil.vecPlayerToWorld(d, (double)(-this.stepHeight), e, gravityDirection)))) {
+            while(d != 0.0D && e != 0.0D && this.world.isSpaceEmpty((Entity) (Object) this, this.getBoundingBox().offset(RotationUtil.vecPlayerToWorld(d, (double)(-this.stepHeight), e, gravityDirection)))) {
                 if (d < 0.05D && d >= -0.05D) {
                     d = 0.0D;
                 } else if (d > 0.0D) {
@@ -355,7 +352,25 @@ public abstract class PlayerEntityMixin extends LivingEntity implements EntityAc
         return RotationUtil.rotPlayerToWorld(attacker.getYaw(), attacker.getPitch(), gravityDirection).x;
     }
 
-    @ModifyArgs(
+//    @ModifyArgs(
+//            method = "spawnParticles",
+//            at = @At(
+//                    value = "INVOKE",
+//                    target = "Lnet/minecraft/world/World;addParticle(Lnet/minecraft/particle/ParticleEffect;DDDDDD)V",
+//                    ordinal = 0
+//            )
+//    )
+//    private void modify_addDeathParticless_addParticle_0(Args args) {
+//        Direction gravityDirection = ((EntityAccessor) this).gravitychanger$getAppliedGravityDirection();
+//        if(gravityDirection == Direction.DOWN) return;
+//
+//        Vec3d vec3d = this.getPos().subtract(RotationUtil.vecPlayerToWorld(this.getPos().subtract(args.get(1), args.get(2), args.get(3)), gravityDirection));
+//        args.set(1, vec3d.x);
+//        args.set(2, vec3d.y);
+//        args.set(3, vec3d.z);
+//    }
+
+    @Redirect(
             method = "spawnParticles",
             at = @At(
                     value = "INVOKE",
@@ -363,17 +378,36 @@ public abstract class PlayerEntityMixin extends LivingEntity implements EntityAc
                     ordinal = 0
             )
     )
-    private void modify_addDeathParticless_addParticle_0(Args args) {
+    private void modify_addDeathParticless_addParticle_0(World world, ParticleEffect parameters, double x, double y, double z, double velocityX, double velocityY, double velocityZ) {
         Direction gravityDirection = ((EntityAccessor) this).gravitychanger$getAppliedGravityDirection();
-        if(gravityDirection == Direction.DOWN) return;
+        if (gravityDirection == Direction.DOWN) return;
 
-        Vec3d vec3d = this.getPos().subtract(RotationUtil.vecPlayerToWorld(this.getPos().subtract(args.get(1), args.get(2), args.get(3)), gravityDirection));
-        args.set(1, vec3d.x);
-        args.set(2, vec3d.y);
-        args.set(3, vec3d.z);
+        Vec3d vec3d = this.getPos().subtract(RotationUtil.vecPlayerToWorld(this.getPos().subtract(x, y, z), gravityDirection));
+
+        world.addParticle(parameters, vec3d.x, vec3d.y, vec3d.z, velocityX, velocityY, velocityZ);
     }
 
-    @ModifyArgs(
+
+    //    TODO:Edit
+//    @ModifyArgs(
+//            method = "tickMovement",
+//            at = @At(
+//                    value = "INVOKE",
+//                    target = "Lnet/minecraft/util/math/Box;expand(DDD)Lnet/minecraft/util/math/Box;",
+//                    ordinal = 0
+//            )
+//    )
+//    private void modify_tickMovement_expand_0(Args args) {
+//        Direction gravityDirection = ((EntityAccessor) this).gravitychanger$getAppliedGravityDirection();
+//        if(gravityDirection == Direction.DOWN) return;
+//
+//        Vec3d vec3d = RotationUtil.maskPlayerToWorld(args.get(0), args.get(1), args.get(2), gravityDirection);
+//        args.set(0, vec3d.x);
+//        args.set(1, vec3d.y);
+//        args.set(2, vec3d.z);
+//    }
+
+    @Redirect(
             method = "tickMovement",
             at = @At(
                     value = "INVOKE",
@@ -381,17 +415,35 @@ public abstract class PlayerEntityMixin extends LivingEntity implements EntityAc
                     ordinal = 0
             )
     )
-    private void modify_tickMovement_expand_0(Args args) {
+    private Box modify_tickMovement_expand_0(Box box, double x, double y, double z) {
         Direction gravityDirection = ((EntityAccessor) this).gravitychanger$getAppliedGravityDirection();
-        if(gravityDirection == Direction.DOWN) return;
+        if(gravityDirection == Direction.DOWN) return box.expand(x,y,z);
 
-        Vec3d vec3d = RotationUtil.maskPlayerToWorld(args.get(0), args.get(1), args.get(2), gravityDirection);
-        args.set(0, vec3d.x);
-        args.set(1, vec3d.y);
-        args.set(2, vec3d.z);
+        Vec3d vec3d = RotationUtil.maskPlayerToWorld(x, y, z, gravityDirection);
+
+        return box.expand(vec3d.x, vec3d.y, vec3d.z);
     }
 
-    @ModifyArgs(
+    //    TODO:Edit
+//    @ModifyArgs(
+//            method = "tickMovement",
+//            at = @At(
+//                    value = "INVOKE",
+//                    target = "Lnet/minecraft/util/math/Box;expand(DDD)Lnet/minecraft/util/math/Box;",
+//                    ordinal = 1
+//            )
+//    )
+//    private void modify_tickMovement_expand_1(Args args) {
+//        Direction gravityDirection = ((EntityAccessor) this).gravitychanger$getAppliedGravityDirection();
+//        if(gravityDirection == Direction.DOWN) return;
+//
+//        Vec3d vec3d = RotationUtil.maskPlayerToWorld(args.get(0), args.get(1), args.get(2), gravityDirection);
+//        args.set(0, vec3d.x);
+//        args.set(1, vec3d.y);
+//        args.set(2, vec3d.z);
+//    }
+
+    @Redirect(
             method = "tickMovement",
             at = @At(
                     value = "INVOKE",
@@ -399,13 +451,12 @@ public abstract class PlayerEntityMixin extends LivingEntity implements EntityAc
                     ordinal = 1
             )
     )
-    private void modify_tickMovement_expand_1(Args args) {
+    private Box modify_tickMovement_expand_1(Box box, double x, double y, double z) {
         Direction gravityDirection = ((EntityAccessor) this).gravitychanger$getAppliedGravityDirection();
-        if(gravityDirection == Direction.DOWN) return;
+        if(gravityDirection == Direction.DOWN) return box.expand(x,y,z);
 
-        Vec3d vec3d = RotationUtil.maskPlayerToWorld(args.get(0), args.get(1), args.get(2), gravityDirection);
-        args.set(0, vec3d.x);
-        args.set(1, vec3d.y);
-        args.set(2, vec3d.z);
+        Vec3d vec3d = RotationUtil.maskPlayerToWorld(x, y, z, gravityDirection);
+
+        return box.expand(vec3d.x, vec3d.y, vec3d.z);
     }
 }

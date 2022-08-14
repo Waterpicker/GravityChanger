@@ -1,0 +1,29 @@
+# This is an example mods.toml file.
+# Any fields that aren't annotated with #optional are *required*!
+modLoader = "javafml"
+loaderVersion = "[40,)"
+license = "MIT" # Want to make your mod open source? Check out https://choosealicense.com/!
+
+issueTrackerURL="https://github.com/Gaider10/GravityChanger/issues" #optional
+
+[[mods]]
+modId = "gravitychanger"
+version = "${version}"
+displayName = "GravityChanger"
+logoFile="assets/gravitychanger/icon.png"
+authors="Gaider10 (Original Author), Waterpicker (Ported to forge)"
+description = "Lets you change player gravity"
+
+[[dependencies.gravitychanger]]
+modId = "forge"
+mandatory = true # do you **need** this mod to be able to launch?
+versionRange = "[40,)" # This essentially means any forge >= 40
+ordering = "NONE" # Use this if you want your mod to be loaded specifically BEFORE or AFTER another mod
+side = "BOTH" # Specify where this mod is required: can be BOTH, CLIENT or SERVER
+
+[[dependencies.gravitychanger]]
+modId = "minecraft"
+mandatory = true
+versionRange = "[1.18.2,)"
+ordering = "NONE"
+side = "BOTH"

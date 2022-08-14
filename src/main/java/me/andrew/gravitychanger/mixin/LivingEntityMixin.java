@@ -4,6 +4,7 @@ import me.andrew.gravitychanger.accessor.EntityAccessor;
 import me.andrew.gravitychanger.util.RotationUtil;
 import net.minecraft.entity.*;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.particle.ParticleEffect;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Direction;
@@ -17,16 +18,12 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import org.spongepowered.asm.mixin.injection.invoke.arg.Args;
 
 @Mixin(LivingEntity.class)
-public abstract class LivingEntityMixin extends Entity {
+public abstract class LivingEntityMixin extends EntityMixin {
     @Shadow public abstract void readCustomDataFromNbt(NbtCompound nbt);
 
     @Shadow public abstract EntityDimensions getDimensions(EntityPose pose);
 
     @Shadow public abstract float getYaw(float tickDelta);
-
-    public LivingEntityMixin(EntityType<?> type, World world) {
-        super(type, world);
-    }
 
     @Redirect(
             method = "travel",
@@ -446,25 +443,42 @@ public abstract class LivingEntityMixin extends Entity {
         return RotationUtil.vecPlayerToWorld(vec3d, gravityDirection);
     }
 
-    @ModifyArgs(
-            method = "tickStatusEffects",
+    @Redirect(method = "tickStatusEffects",
             at = @At(
                     value = "INVOKE",
                     target = "Lnet/minecraft/world/World;addParticle(Lnet/minecraft/particle/ParticleEffect;DDDDDD)V",
                     ordinal = 0
             )
     )
-    private void modify_tickStatusEffects_addParticle_0(Args args) {
+    private void modify_tickStatusEffects_addParticle_0(World world, ParticleEffect parameters, double x, double y, double z, double velocityX, double velocityY, double velocityZ) {
         Direction gravityDirection = ((EntityAccessor) this).gravitychanger$getAppliedGravityDirection();
         if(gravityDirection == Direction.DOWN) return;
 
-        Vec3d vec3d = this.getPos().subtract(RotationUtil.vecPlayerToWorld(this.getPos().subtract(args.get(1), args.get(2), args.get(3)), gravityDirection));
-        args.set(1, vec3d.x);
-        args.set(2, vec3d.y);
-        args.set(3, vec3d.z);
+        Vec3d vec3d = this.getPos().subtract(RotationUtil.vecPlayerToWorld(this.getPos().subtract(x,y,z), gravityDirection));
+
+        world.addParticle(parameters, vec3d.x, vec3d.y, vec3d.z, velocityX, velocityY, velocityZ);
     }
 
-    @ModifyArgs(
+
+//    @ModifyArgs(
+//            method = "tickStatusEffects",
+//            at = @At(
+//                    value = "INVOKE",
+//                    target = "Lnet/minecraft/world/World;addParticle(Lnet/minecraft/particle/ParticleEffect;DDDDDD)V",
+//                    ordinal = 0
+//            )
+//    )
+//    private void modify_tickStatusEffects_addParticle_0(Args args) {
+//        Direction gravityDirection = ((EntityAccessor) this).gravitychanger$getAppliedGravityDirection();
+//        if(gravityDirection == Direction.DOWN) return;
+//
+//        Vec3d vec3d = this.getPos().subtract(RotationUtil.vecPlayerToWorld(this.getPos().subtract(args.get(1), args.get(2), args.get(3)), gravityDirection));
+//        args.set(1, vec3d.x);
+//        args.set(2, vec3d.y);
+//        args.set(3, vec3d.z);
+//    }
+
+    @Redirect(
             method = "addDeathParticles",
             at = @At(
                     value = "INVOKE",
@@ -472,15 +486,32 @@ public abstract class LivingEntityMixin extends Entity {
                     ordinal = 0
             )
     )
-    private void modify_addDeathParticless_addParticle_0(Args args) {
+    private void modify_addDeathParticless_addParticle_0(World world, ParticleEffect parameters, double x, double y, double z, double velocityX, double velocityY, double velocityZ) {
         Direction gravityDirection = ((EntityAccessor) this).gravitychanger$getAppliedGravityDirection();
-        if(gravityDirection == Direction.DOWN) return;
+        if (gravityDirection == Direction.DOWN) return;
 
-        Vec3d vec3d = this.getPos().subtract(RotationUtil.vecPlayerToWorld(this.getPos().subtract(args.get(1), args.get(2), args.get(3)), gravityDirection));
-        args.set(1, vec3d.x);
-        args.set(2, vec3d.y);
-        args.set(3, vec3d.z);
+        Vec3d vec3d = this.getPos().subtract(RotationUtil.vecPlayerToWorld(this.getPos().subtract(x, y, z), gravityDirection));
+
+        world.addParticle(parameters, vec3d.x, vec3d.y, vec3d.z, velocityX, velocityY, velocityZ);
     }
+
+//    @ModifyArgs(
+//            method = "addDeathParticles",
+//            at = @At(
+//                    value = "INVOKE",
+//                    target = "Lnet/minecraft/world/World;addParticle(Lnet/minecraft/particle/ParticleEffect;DDDDDD)V",
+//                    ordinal = 0
+//            )
+//    )
+//    private void modify_addDeathParticless_addParticle_0(Args args) {
+//        Direction gravityDirection = ((EntityAccessor) this).gravitychanger$getAppliedGravityDirection();
+//        if(gravityDirection == Direction.DOWN) return;
+//
+//        Vec3d vec3d = this.getPos().subtract(RotationUtil.vecPlayerToWorld(this.getPos().subtract(args.get(1), args.get(2), args.get(3)), gravityDirection));
+//        args.set(1, vec3d.x);
+//        args.set(2, vec3d.y);
+//        args.set(3, vec3d.z);
+//    }
 
     @ModifyVariable(
             method = "blockedByShield",
@@ -500,23 +531,40 @@ public abstract class LivingEntityMixin extends Entity {
         return RotationUtil.vecWorldToPlayer(vec3d, gravityDirection);
     }
 
-    @ModifyArg(
+    @Redirect(
             method = "blockedByShield",
             at = @At(
                     value = "INVOKE",
                     target = "Lnet/minecraft/util/math/Vec3d;relativize(Lnet/minecraft/util/math/Vec3d;)Lnet/minecraft/util/math/Vec3d;",
                     ordinal = 0
-            ),
-            index = 0
+            )
     )
-    private Vec3d modify_blockedByShield_relativize_0(Vec3d vec3d) {
+    private Vec3d modify_blockedByShield_relativize_0(Vec3d origin, Vec3d vec3d) {
         Direction gravityDirection = ((EntityAccessor) this).gravitychanger$getAppliedGravityDirection();
         if(gravityDirection == Direction.DOWN) {
-            return vec3d;
+            return origin.relativize(vec3d);
         }
 
-        return this.getEyePos();
+        return origin.relativize(this.getEyePos());
     }
+
+//    @ModifyArg(
+//            method = "blockedByShield",
+//            at = @At(
+//                    value = "INVOKE",
+//                    target = "Lnet/minecraft/util/math/Vec3d;relativize(Lnet/minecraft/util/math/Vec3d;)Lnet/minecraft/util/math/Vec3d;",
+//                    ordinal = 0
+//            ),
+//            index = 0
+//    )
+//    private Vec3d modify_blockedByShield_relativize_0(Vec3d vec3d) {
+//        Direction gravityDirection = ((EntityAccessor) this).gravitychanger$getAppliedGravityDirection();
+//        if(gravityDirection == Direction.DOWN) {
+//            return vec3d;
+//        }
+//
+//        return this.getEyePos();
+//    }
 
     @ModifyVariable(
             method = "blockedByShield",

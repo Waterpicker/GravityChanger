@@ -3,24 +3,22 @@ package me.andrew.gravitychanger.mixin;
 import me.andrew.gravitychanger.GravityChangerMod;
 import me.andrew.gravitychanger.accessor.RotatableEntityAccessor;
 import me.andrew.gravitychanger.accessor.ServerPlayerEntityAccessor;
-import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
+import me.andrew.gravitychanger.network.Networking;
+import net.minecraft.entity.EntityType;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.data.TrackedData;
-import net.minecraft.network.PacketByteBuf;
-import net.minecraft.network.packet.s2c.play.CustomPayloadS2CPacket;
-import net.minecraft.server.network.ServerPlayNetworkHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.math.Direction;
+import net.minecraft.world.World;
+import net.minecraftforge.network.PacketDistributor;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(ServerPlayerEntity.class)
-public abstract class ServerPlayerEntityMixin implements RotatableEntityAccessor, ServerPlayerEntityAccessor {
-    @Shadow public ServerPlayNetworkHandler networkHandler;
-
+public abstract class ServerPlayerEntityMixin extends PlayerEntityMixin implements RotatableEntityAccessor, ServerPlayerEntityAccessor {
     private Direction gravitychanger$gravityDirection = Direction.DOWN;
 
     @Override
@@ -51,16 +49,11 @@ public abstract class ServerPlayerEntityMixin implements RotatableEntityAccessor
 
     @Override
     public void gravitychanger$sendGravityPacket(Direction gravityDirection, boolean initialGravity) {
-        if(this.networkHandler == null) return;
-
-        PacketByteBuf buf = PacketByteBufs.create();
-        buf.writeEnumConstant(gravityDirection);
-        buf.writeBoolean(initialGravity);
-        this.networkHandler.sendPacket(new CustomPayloadS2CPacket(GravityChangerMod.CHANNEL_GRAVITY, buf));
+        Networking.INSTANCE.send(PacketDistributor.PLAYER.with(() -> (ServerPlayerEntity) (Object) this), new Networking.GravityUpdate(gravityDirection, initialGravity));
     }
 
     @Inject(
-            method = "moveToWorld",
+            method = "changeDimension",
             at = @At(
                     value = "INVOKE",
                     target = "Lnet/minecraft/server/network/ServerPlayNetworkHandler;sendPacket(Lnet/minecraft/network/Packet;)V",

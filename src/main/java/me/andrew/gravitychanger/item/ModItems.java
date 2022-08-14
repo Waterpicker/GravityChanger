@@ -6,21 +6,21 @@ import net.minecraft.item.ItemGroup;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.registry.Registry;
+import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.registries.DeferredRegister;
+import net.minecraftforge.registries.RegistryObject;
 
 public abstract class ModItems {
-    public static final Item GRAVITY_CHANGER_DOWN = new GravityChangerItem(new Item.Settings().group(ItemGroup.TOOLS).maxCount(1), Direction.DOWN);
-    public static final Item GRAVITY_CHANGER_UP = new GravityChangerItem(new Item.Settings().group(ItemGroup.TOOLS).maxCount(1), Direction.UP);
-    public static final Item GRAVITY_CHANGER_NORTH = new GravityChangerItem(new Item.Settings().group(ItemGroup.TOOLS).maxCount(1), Direction.NORTH);
-    public static final Item GRAVITY_CHANGER_SOUTH = new GravityChangerItem(new Item.Settings().group(ItemGroup.TOOLS).maxCount(1), Direction.SOUTH);
-    public static final Item GRAVITY_CHANGER_WEST = new GravityChangerItem(new Item.Settings().group(ItemGroup.TOOLS).maxCount(1), Direction.WEST);
-    public static final Item GRAVITY_CHANGER_EAST = new GravityChangerItem(new Item.Settings().group(ItemGroup.TOOLS).maxCount(1), Direction.EAST);
+    public static final DeferredRegister<Item> ITEMS = DeferredRegister.create(Registry.ITEM_KEY, "gravitychanger");
 
-    public static void init() {
-        Registry.register(Registry.ITEM, new Identifier(GravityChangerMod.MOD_ID, "gravity_changer_down"), GRAVITY_CHANGER_DOWN);
-        Registry.register(Registry.ITEM, new Identifier(GravityChangerMod.MOD_ID, "gravity_changer_up"), GRAVITY_CHANGER_UP);
-        Registry.register(Registry.ITEM, new Identifier(GravityChangerMod.MOD_ID, "gravity_changer_north"), GRAVITY_CHANGER_NORTH);
-        Registry.register(Registry.ITEM, new Identifier(GravityChangerMod.MOD_ID, "gravity_changer_south"), GRAVITY_CHANGER_SOUTH);
-        Registry.register(Registry.ITEM, new Identifier(GravityChangerMod.MOD_ID, "gravity_changer_west"), GRAVITY_CHANGER_WEST);
-        Registry.register(Registry.ITEM, new Identifier(GravityChangerMod.MOD_ID, "gravity_changer_east"), GRAVITY_CHANGER_EAST);
+    public static final RegistryObject<GravityChangerItem> GRAVITY_CHANGER_DOWN = ITEMS.register("gravity_changer_down", () -> new GravityChangerItem(new Item.Settings().group(ItemGroup.TOOLS).maxCount(1), Direction.DOWN));
+    public static final RegistryObject<Item> GRAVITY_CHANGER_UP = ITEMS.register("gravity_changer_up", () -> new GravityChangerItem(new Item.Settings().group(ItemGroup.TOOLS).maxCount(1), Direction.UP));
+    public static final RegistryObject<Item> GRAVITY_CHANGER_NORTH = ITEMS.register("gravity_changer_north", () -> new GravityChangerItem(new Item.Settings().group(ItemGroup.TOOLS).maxCount(1), Direction.NORTH));
+    public static final RegistryObject<Item> GRAVITY_CHANGER_SOUTH = ITEMS.register("gravity_changer_south", () -> new GravityChangerItem(new Item.Settings().group(ItemGroup.TOOLS).maxCount(1), Direction.SOUTH));
+    public static final RegistryObject<Item> GRAVITY_CHANGER_WEST = ITEMS.register("gravity_changer_west", () -> new GravityChangerItem(new Item.Settings().group(ItemGroup.TOOLS).maxCount(1), Direction.WEST));
+    public static final RegistryObject<Item> GRAVITY_CHANGER_EAST = ITEMS.register("gravity_changer_east", () -> new GravityChangerItem(new Item.Settings().group(ItemGroup.TOOLS).maxCount(1), Direction.EAST));
+
+    public static void init(IEventBus eventBus) {
+        ITEMS.register(eventBus);
     }
 }

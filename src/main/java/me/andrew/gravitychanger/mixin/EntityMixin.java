@@ -10,18 +10,21 @@ import net.minecraft.block.ShapeContext;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityDimensions;
 import net.minecraft.entity.EntityPose;
+import net.minecraft.entity.data.DataTracker;
 import net.minecraft.entity.data.TrackedData;
 import net.minecraft.fluid.Fluid;
 import net.minecraft.fluid.FluidState;
 import net.minecraft.particle.BlockStateParticleEffect;
 import net.minecraft.particle.ParticleTypes;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.tag.FluidTags;
 import net.minecraft.tag.Tag;
+import net.minecraft.tag.TagKey;
 import net.minecraft.util.math.*;
 import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.util.shape.VoxelShapes;
 import net.minecraft.world.World;
-import org.jetbrains.annotations.Nullable;
+import net.minecraftforge.registries.ForgeRegistries;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -29,9 +32,11 @@ import org.spongepowered.asm.mixin.injection.*;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+import javax.annotation.Nullable;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
+import java.util.Set;
 import java.util.stream.Stream;
 
 @Mixin(Entity.class)
@@ -64,10 +69,6 @@ public abstract class EntityMixin implements EntityAccessor {
 
     @Shadow protected boolean submergedInWater;
 
-    @Shadow public abstract boolean isSubmergedIn(Tag<Fluid> fluidTag);
-
-    @Shadow @Nullable protected Tag<Fluid> submergedFluidTag;
-
     @Shadow public boolean noClip;
 
     @Shadow public abstract Vec3d getVelocity();
@@ -87,6 +88,38 @@ public abstract class EntityMixin implements EntityAccessor {
     @Shadow public abstract void addVelocity(double deltaX, double deltaY, double deltaZ);
 
     @Shadow protected abstract void tickInVoid();
+
+    @Shadow public abstract boolean isSubmergedIn(TagKey<Fluid> fluidTag);
+
+    @Shadow @Final private Set<TagKey<Fluid>> submergedFluidTag;
+
+    @Shadow public abstract void setPosition(Vec3d pos);
+
+    @Shadow @Nullable public abstract Entity getVehicle();
+
+    @Shadow public abstract void setVelocity(Vec3d velocity);
+
+    @Shadow public abstract float getPitch();
+
+    @Shadow public abstract float getYaw();
+
+    @Shadow public abstract void setYaw(float yaw);
+
+    @Shadow public abstract void setPitch(float pitch);
+
+    @Shadow public abstract DataTracker getDataTracker();
+
+    @Shadow public float stepHeight;
+
+    @Shadow @Final protected DataTracker dataTracker;
+
+    @Shadow public float fallDistance;
+
+    @Shadow public abstract void setBoundingBox(Box boundingBox);
+
+    @Shadow protected abstract Box calculateBoundingBox();
+
+    @Shadow public abstract EntityPose getPose();
 
     @Override
     public Direction gravitychanger$getAppliedGravityDirection() {
@@ -466,24 +499,14 @@ public abstract class EntityMixin implements EntityAccessor {
         ci.cancel();
 
         this.submergedInWater = this.isSubmergedIn(FluidTags.WATER);
-        this.submergedFluidTag = null;
+        this.submergedFluidTag.clear();
         Vec3d mouthPos = this.getEyePos().subtract(RotationUtil.vecPlayerToWorld(0.0D, 0.1111111119389534D, 0.0D, gravityDirection));
         BlockPos blockPos = new BlockPos(mouthPos);
         FluidState fluidState = this.world.getFluidState(blockPos);
-        Iterator<Tag<Fluid>> var6 = FluidTags.getTags().iterator();
-
-        Tag<Fluid> tag;
-        do {
-            if (!var6.hasNext()) {
-                return;
-            }
-
-            tag = var6.next();
-        } while(!fluidState.isIn(tag));
 
         Box box = new Box(blockPos.getX(), blockPos.getY(), blockPos.getZ(), blockPos.getX() + 1, blockPos.getY() + fluidState.getHeight(this.world, blockPos), blockPos.getZ() + 1);
         if (box.contains(mouthPos)) {
-            this.submergedFluidTag = tag;
+            fluidState.streamTags().forEach(this.submergedFluidTag::add);
         }
     }
 
