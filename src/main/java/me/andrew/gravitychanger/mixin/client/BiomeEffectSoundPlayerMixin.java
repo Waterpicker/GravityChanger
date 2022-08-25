@@ -11,12 +11,13 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 @Mixin(BiomeEffectSoundPlayer.class)
 public abstract class BiomeEffectSoundPlayerMixin {
     @Redirect(
-            method = "method_26271",
+            method = { "method_26271", "m_119649_" },
             at = @At(
                     value = "INVOKE",
                     target = "Lnet/minecraft/client/network/ClientPlayerEntity;getEyeY()D",
                     ordinal = 0
             )
+
     )
     private double redirect_method_26271_getEyeY_0(ClientPlayerEntity clientPlayerEntity) {
         Direction gravityDirection = ((EntityAccessor) clientPlayerEntity).gravitychanger$getAppliedGravityDirection();
@@ -28,12 +29,13 @@ public abstract class BiomeEffectSoundPlayerMixin {
     }
 
     @Redirect(
-            method = "method_26271",
+            method = { "method_26271", "m_119649_" },
             at = @At(
                     value = "INVOKE",
                     target = "Lnet/minecraft/client/network/ClientPlayerEntity;getX()D",
                     ordinal = 0
             )
+
     )
     private double redirect_method_26271_getX_0(ClientPlayerEntity clientPlayerEntity) {
         Direction gravityDirection = ((EntityAccessor) clientPlayerEntity).gravitychanger$getAppliedGravityDirection();
@@ -45,12 +47,13 @@ public abstract class BiomeEffectSoundPlayerMixin {
     }
 
     @Redirect(
-            method = "method_26271",
+            method = { "method_26271", "m_119649_" },
             at = @At(
                     value = "INVOKE",
                     target = "Lnet/minecraft/client/network/ClientPlayerEntity;getZ()D",
                     ordinal = 0
             )
+
     )
     private double redirect_method_26271_getZ_0(ClientPlayerEntity clientPlayerEntity) {
         Direction gravityDirection = ((EntityAccessor) clientPlayerEntity).gravitychanger$getAppliedGravityDirection();
@@ -62,12 +65,13 @@ public abstract class BiomeEffectSoundPlayerMixin {
     }
 
     @Redirect(
-            method = "method_26271",
+            method = { "method_26271", "m_119649_" },
             at = @At(
                     value = "INVOKE",
                     target = "Lnet/minecraft/client/network/ClientPlayerEntity;getEyeY()D",
                     ordinal = 1
             )
+
     )
     private double redirect_method_26271_getEyeY_1(ClientPlayerEntity clientPlayerEntity) {
         Direction gravityDirection = ((EntityAccessor) clientPlayerEntity).gravitychanger$getAppliedGravityDirection();
@@ -79,12 +83,13 @@ public abstract class BiomeEffectSoundPlayerMixin {
     }
 
     @Redirect(
-            method = "method_26271",
+            method = { "method_26271", "m_119649_" },
             at = @At(
                     value = "INVOKE",
                     target = "Lnet/minecraft/client/network/ClientPlayerEntity;getX()D",
                     ordinal = 1
             )
+
     )
     private double redirect_method_26271_getX_1(ClientPlayerEntity clientPlayerEntity) {
         Direction gravityDirection = ((EntityAccessor) clientPlayerEntity).gravitychanger$getAppliedGravityDirection();
@@ -96,12 +101,13 @@ public abstract class BiomeEffectSoundPlayerMixin {
     }
 
     @Redirect(
-            method = "method_26271",
+            method = { "method_26271", "m_119649_" },
             at = @At(
                     value = "INVOKE",
                     target = "Lnet/minecraft/client/network/ClientPlayerEntity;getZ()D",
                     ordinal = 1
             )
+
     )
     private double redirect_method_26271_getZ_1(ClientPlayerEntity clientPlayerEntity) {
         Direction gravityDirection = ((EntityAccessor) clientPlayerEntity).gravitychanger$getAppliedGravityDirection();
@@ -113,12 +119,13 @@ public abstract class BiomeEffectSoundPlayerMixin {
     }
 
     @Redirect(
-            method = "method_26271",
+            method = { "method_26271", "m_119649_" },
             at = @At(
                     value = "INVOKE",
                     target = "Lnet/minecraft/client/network/ClientPlayerEntity;getEyeY()D",
                     ordinal = 2
             )
+
     )
     private double redirect_method_26271_getEyeY_2(ClientPlayerEntity clientPlayerEntity) {
         Direction gravityDirection = ((EntityAccessor) clientPlayerEntity).gravitychanger$getAppliedGravityDirection();
@@ -130,12 +137,13 @@ public abstract class BiomeEffectSoundPlayerMixin {
     }
 
     @Redirect(
-            method = "method_26271",
+            method = { "method_26271", "m_119649_" },
             at = @At(
                     value = "INVOKE",
                     target = "Lnet/minecraft/client/network/ClientPlayerEntity;getX()D",
                     ordinal = 2
             )
+
     )
     private double redirect_method_26271_getX_2(ClientPlayerEntity clientPlayerEntity) {
         Direction gravityDirection = ((EntityAccessor) clientPlayerEntity).gravitychanger$getAppliedGravityDirection();
@@ -147,12 +155,13 @@ public abstract class BiomeEffectSoundPlayerMixin {
     }
 
     @Redirect(
-            method = "method_26271",
+            method = { "method_26271", "m_119649_" },
             at = @At(
                     value = "INVOKE",
                     target = "Lnet/minecraft/client/network/ClientPlayerEntity;getZ()D",
                     ordinal = 2
             )
+
     )
     private double redirect_method_26271_getZ_2(ClientPlayerEntity clientPlayerEntity) {
         Direction gravityDirection = ((EntityAccessor) clientPlayerEntity).gravitychanger$getAppliedGravityDirection();
